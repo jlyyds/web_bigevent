@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./assets/css/login.css">
+    <link rel="stylesheet" href="./assets/lib/layui/css/layui.css">
+
+</head>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        background: url("assets/images/login_bg.jpg") no-repeat 0 0;
+        background-size: cover;
+    }
+
+    .banner {
+        width: 1200px;
+        margin: 0 auto;
+    }
+
+    .loginregbox {
+        width: 400px;
+        height: 310px;
+        background-color: #fff;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .titlebox {
+        height: 60px;
+        background: url("assets/images/login_title.png") no-repeat center
+    }
+
+    .reg_box {
+        display: none;
+    }
+
+    .layui-form {
+        padding: 0 30px;
+    }
+
+    .links {
+        display: flex;
+        justify-content: flex-end;
+    }
+    .links a{
+        font-size: 12px;
+    }
+    .layui-form-item{
+        position: relative;
+    }
+
+    .layui-icon{
+        position: absolute;
+        left: 10px;
+        top: 10px;
+    }
+    .layui-input{
+        padding-left: 32px;
+    }
+</style>
+
+<body>
+    <div class="layui-main"><img src="./assets/images/logo.png" alt=""></div>
+    <div class="loginregbox">
+        <div class="titlebox"></div>
+        <!-- 登陆的div login-box -->
+        <div class="login_box">
+            <form class="layui-form" id="form_login">
+                <div class="layui-form-item">
+                    <i class="layui-icon layui-icon-username"></i>   
+                    <input type="text" name="username" required  lay-verify="required" placeholder="请输入账号"
+                        autocomplete="off" class="layui-input">
+                </div>
+                <div class="layui-form-item">
+                    <i class="layui-icon layui-icon-password"></i>   
+                    <input type="password" name="password" required lay-verify="required|pwd" placeholder="请输入密码"
+                        autocomplete="off" class="layui-input">
+
+                </div>
+                <div class="layui-form-item">
+                    <button class="layui-btn layui-btn-normal layui-btn layui-btn-fluid" lay-submit>登陆</button>
+                </div>
+
+                <div class="layui-form-item links"><a href="#" id="link_reg">去注册</a></div>
+            </form>
+        </div>
+        <!-- 注册的div reg_box -->
+        <div class="reg_box">
+            <form class="layui-form" id="form_reg">
+                <div class="layui-form-item">
+                    <i class="layui-icon layui-icon-username"></i>   
+                    <input type="text" name="username" required lay-verify="required|pwd" placeholder="请输入账号"
+                        autocomplete="off" class="layui-input">
+                </div>
+                <div class="layui-form-item">
+                    <i class="layui-icon layui-icon-password"></i>
+                    <input type="password" name="password" required lay-verify="required|pwd" placeholder="请输入密码"
+                        autocomplete="off" class="layui-input">
+
+                </div>
+                <div class="layui-form-item">
+                    <i class="layui-icon layui-icon-password"></i>
+                    <input type="text" name="confirmed" required lay-verify="required|repwd" placeholder="再次确认密码"
+                        autocomplete="off" class="layui-input">
+                </div>
+                <div class="layui-form-item">
+                    <button class="layui-btn layui-btn-normal layui-btn layui-btn-fluid" lay-submit>注册</button>
+                </div>
+               
+                <div class="layui-form-item links"><a href="#" id="link_login">去登陆</a></div>
+            </form>
+            
+        </div>
+    </div>
+    <script src="./assets/lib/layui/layui.all.js"></script>
+    <script src="./assets/lib/jquery.js"></script>
+    <script>
+        
+           $.ajaxPrefilter(function (options){
+           
+            options.url ='http://www.liulongbin.top:3007'+options.url
+            console.log(options.url)
+           })
+        $('#link_login').on('click', function () {
+            $('.reg_box').hide()
+            $('.login_box').show()
+        })
+        $('#link_reg').on('click', function () {
+            $('.login_box').hide()
+            $('.reg_box').show()
+        })
+          let form=layui.form
+        form.verify({
+        
+           pwd:[/^[\S]{6,12}$/,'密码必须是6到12位且不能出现空格'],
+           repwd:function(value){
+              if($('.reg_box input[name=password]').val()!=value)
+              {
+                return '两次密码输入不一致'
+              }
+           }
+        })
+  $('#form_reg').on('submit',function (e){
+    e.preventDefault()
+  
+    $.ajax({
+        method:"POST",
+        url:'http://www.liulongbin.top:3007/api/reguser'
+        ,data:{username:$('#form_reg [name=username]').val(),password:$('#form_reg [name=password]').val()}
+        ,success:function(res){
+            let layer=layui.layer 
+            if(res!==0)
+            { 
+                 layer.msg(res.message)
+            }
+            layer.msg('注册成功,请登录！')
+            $('#link_login').trigger('click')
+        }
+    })
+  })
+  $('#form_login').on('submit',function (e){
+e.preventDefault()
+$.ajax({
+        method:"post",
+        url:'/api/login'
+        ,data:$(this).serialize()
+        ,success:function(res){
+            let layer=layui.layer 
+            if(res.status!==0)
+            { 
+                console.log($(this).serialize())
+                console.log(res.status)
+                 layer.msg('登陆失败')
+            }
+          else {layer.msg('登陆成功！')  
+        }
+         localStorage.setItem('token',res.token)
+          //跳转到后台主页
+          location.href='/index.html'
+        }
+    })
+  })
+    </script>
+</body>
+
+</html>
